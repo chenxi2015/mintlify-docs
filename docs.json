@@ -9,42 +9,114 @@
   },
   "favicon": "/favicon.svg",
   "navigation": {
+    "global": {
+      "anchors": [
+        {
+          "anchor": "开放平台",
+          "href": "https://mintlify.com/docs",
+          "icon": "book-open-cover"
+        },
+        {
+          "anchor": "药通云官网",
+          "href": "https://yqofficial.netlify.app",
+          "icon": "slack"
+        }
+      ]
+    },
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "平台指南",
         "groups": [
           {
-            "group": "Get Started",
+            "group": "接入指南",
             "pages": [
               "introduction",
-              "quickstart",
-              "development"
+              "quickstart"
             ]
           },
           {
-            "group": "Essentials",
+            "group": "业务流程",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/settings",
-              "essentials/navigation",
-              "essentials/reusable-snippets"
+              "biz/order",
+              "biz/delivery",
+              "biz/cb",
+              "biz/stock",
+              "biz/goods",
+              "biz/shop"
+            ]
+          },
+          {
+            "group": "开发指南",
+            "pages": [
+              "guide/word",
+              "guide/sign",
+              "guide/api",
+              "guide/code",
+              "guide/cb",
+              "guide/sandbox"
+            ]
+          },
+          {
+            "group": "常见问题",
+            "pages": [
+              "faq"
+            ]
+          },
+          {
+            "group": "公告通知",
+            "pages": [
+              "notice/markdown"
             ]
           }
         ]
       },
       {
-        "tab": "API Reference",
+        "tab": "接口文档",
         "groups": [
           {
-            "group": "API Documentation",
+            "group": "文档说明",
             "pages": [
               "api-reference/introduction"
             ]
           },
           {
-            "group": "Endpoint Examples",
+            "group": "订单接口",
+            "pages": [
+              "api-reference/endpoint/get",
+              "api-reference/endpoint/create",
+              "api-reference/endpoint/delete",
+              "api-reference/endpoint/webhook"
+            ]
+          },
+          {
+            "group": "库存接口",
+            "pages": [
+              "api-reference/endpoint/get",
+              "api-reference/endpoint/create",
+              "api-reference/endpoint/delete",
+              "api-reference/endpoint/webhook"
+            ]
+          },
+          {
+            "group": "商品接口",
+            "pages": [
+              "api-reference/endpoint/get",
+              "api-reference/endpoint/create",
+              "api-reference/endpoint/delete",
+              "api-reference/endpoint/webhook"
+            ]
+          },
+          {
+            "group": "门店接口",
+            "pages": [
+              "api-reference/endpoint/get",
+              "api-reference/endpoint/create",
+              "api-reference/endpoint/delete",
+              "api-reference/endpoint/webhook"
+            ]
+          },
+          {
+            "group": "回调通知",
             "pages": [
               "api-reference/endpoint/get",
               "api-reference/endpoint/create",
@@ -53,27 +125,20 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "SDKs",
+        "groups": [
+          {
+            "group": "SDKs",
+            "pages": [
+              "sdks/js/markdown"
+            ]
+          }
+        ]
+
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Community",
-          "href": "https://mintlify.com/community",
-          "icon": "slack"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
+    ]
   },
   "logo": {
     "light": "/logo/light.svg",
@@ -88,15 +153,13 @@
     ],
     "primary": {
       "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+      "label": "平台后台",
+      "href": "https://yqo2o.netlify.app"
     }
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+      "github": "https://github.com/chenxi2015/mintlify-docs"
     }
   }
 }

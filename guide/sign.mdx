@@ -1,0 +1,605 @@
+---
+title: '签名规则'
+description: ''
+icon: 'shield'
+---
+
+为防止API调用过程中被黑客恶意篡改，调用任何一个API都需要携带签名，配送技术服务合作中心服务端会根据请求参数，对签名进行验证，签名不合法的请求将会被拒绝。
+
+数据签名根据请求参数和secret计算后生成的，每个appkey会绑定单独的secret，可以通过登录美团配送技术服务合作中心，在商户管理-开发管理中可以获取appkey、secret。获取密钥之后，需要参考本文内容生成签名。
+
+## 一、原理介绍
+
+签名和验签的过程如下：
+
+1、API调用方首先将所有请求参数和值放入一个map 中(注意剔除sign参数)，并按照 key 升序排列。然后将所有参数拼接，去掉 key 或 value 为空(包括空字符串和null值)的参数，然后使用secret+参数字符串组成签名原文，最后使用SHA-1算法进行签名。
+
+2、验签方（通常为配送技术服务合作中心的服务端）：获取响应中的签名原文和签名，然后使用密钥通过使用SHA-1算法进行签名，得到的签名和请求参数中的签名进行验证，验证结果为 true 则验证成功，否则验证未通过，则返回签名验证错误。
+
+## 二、加密算法
+
+算法采用标准的SHA-256摘要签名算法,类似的结果格式如下：
+
+```
+ff3f4036a1164d1ddbad5b3edf9022addb3e1961a54a922708a6c1ffc49e5489
+```
+
+## 三、签名步骤
+
+以下将以[同步库存接口](/guide/settings)的部分参数为例，介绍如何使用密钥自行实现签名及发起请求。
+
+假设签名的请求参数如下，其中涉及签名的app_secret假设为`abcdefg123`：
+
+```json
+{
+    "app_key": "39……177070",
+    "timestamp": "1741478746",
+    "signature": "90751b18a91e……31516937d528c7a1",
+    "format": "json",
+    "v": "1.0",
+    "shop_no": "S4564",
+    "mch_sku": "12312",
+    "stock": 1
+}
+```
+
+<Tip>
+    注意：签名或验签时，需要剔除signature参数，并将参数名ASCII码从小到大排序（字典序），最后使用secret+参数字符串组成签名原文，最后使用SHA-256算法进行签名。 具体参数解析请参考[参数说明](/guide/settings)
+</Tip>
+
+### 1. 参数筛选并排序
+获取所有请求参数（包括 公共参数 ），剔除 signature 字段，剔除值为空的参数，并按照第一个字符的键值 ASCII 码递增排序（字母升序排序），如果遇到相同字符则按照第二个字符的键值 ASCII 码递增排序，以此类推。
+
+将所有参数按照参数名的ASCII码从小到大排序（字典序），如下所示：
+```
+app_key=123456&format=json&mch_sku=12312&shop_no=S4564&stock=1&timestamp=1488363493&v=1.0
+```
+
+### 2. 拼接secret
+
+将secret拼接到参数字符串的末尾，如下所示：
+```
+abcdefg123app_key=123456&format=json&mch_sku=12312&shop_no=S4564&stock=1&timestamp=1488363493&v=1.0
+```
+
+### 3. 调用签名函数
+
+可使用下面签名示例，也可自行实现通用Sha256加密算法。
+    
+签名示例代码：
+
+<CodeGroup>
+
+```java SignatureUtil.java [expandable]
+package examples;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Map;
+import java.util.TreeMap;
+
+public class SignatureUtil {
+    
+    /**
+     * 生成签名
+     * @param params 请求参数
+     * @param appSecret 应用密钥
+     * @return 签名字符串
+     */
+    public static String generateSignature(Map<String, String> params, String appSecret) {
+        if (params == null || appSecret == null) {
+            throw new IllegalArgumentException("Params and appSecret cannot be null");
+        }
+
+        // 1. 过滤空值参数并排序
+        TreeMap<String, String> sortedParams = new TreeMap<>();
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            if (entry.getValue() != null && !entry.getValue().isEmpty() && 
+                !entry.getKey().equals("signature")) {
+                sortedParams.put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        // 2. 构建签名原文
+        StringBuilder signatureBase = new StringBuilder();
+        signatureBase.append(appSecret); // 前置 appSecret
+        
+        // 拼接所有参数
+        for (Map.Entry<String, String> entry : sortedParams.entrySet()) {
+            signatureBase.append(entry.getKey()).append(entry.getValue());
+        }
+
+        // 3. 计算SHA-256签名
+        return sha256(signatureBase.toString());
+    }
+
+    /**
+     * SHA-256 加密
+     * @param input 输入字符串
+     * @return 加密后的字符串
+     */
+    private static String sha256(String input) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(input.getBytes(StandardCharsets.UTF_8));
+            return bytesToHex(hash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("SHA-256 algorithm not found", e);
+        }
+    }
+
+    /**
+     * 字节数组转十六进制字符串
+     * @param bytes 字节数组
+     * @return 十六进制字符串
+     */
+    private static String bytesToHex(byte[] bytes) {
+        StringBuilder hexString = new StringBuilder();
+        for (byte b : bytes) {
+            String hex = Integer.toHexString(0xff & b);
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+        return hexString.toString();
+    }
+
+    /**
+     * 验证签名
+     * @param params 请求参数
+     * @param appSecret 应用密钥
+     * @param signature 待验证的签名
+     * @return 是否验证通过
+     */
+    public static boolean verifySignature(Map<String, String> params, String appSecret, String signature) {
+        String calculatedSignature = generateSignature(params, appSecret);
+        return calculatedSignature.equals(signature);
+    }
+
+    /**
+     * 生成按key排序的参数字符串
+     * @param params 请求参数
+     * @return 排序后的参数字符串
+     */
+    public static String generateSortedParamString(Map<String, String> params) {
+        if (params == null) {
+            throw new IllegalArgumentException("Params cannot be null");
+        }
+
+        // 过滤空值参数并排序
+        TreeMap<String, String> sortedParams = new TreeMap<>();
+        for (Map.Entry<String, String> entry : params.entrySet()) {
+            if (entry.getValue() != null && !entry.getValue().isEmpty() && 
+                !entry.getKey().equals("signature")) {
+                sortedParams.put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        // 构建参数字符串
+        StringBuilder result = new StringBuilder();
+        boolean first = true;
+        for (Map.Entry<String, String> entry : sortedParams.entrySet()) {
+            if (!first) {
+                result.append("&");
+            }
+            result.append(entry.getKey()).append("=").append(entry.getValue());
+            first = false;
+        }
+
+        return result.toString();
+    }
+} 
+```
+
+```go SignatureUtil.go [expandable]
+package examples
+
+import (
+    "crypto/sha256"
+    "encoding/hex"
+    "sort"
+    "strings"
+)
+
+// SignatureUtil 签名工具结构体
+type SignatureUtil struct{}
+
+// GenerateSignature 生成签名
+func (s *SignatureUtil) GenerateSignature(params map[string]string, appSecret string) string {
+    if params == nil || appSecret == "" {
+        return ""
+    }
+
+    // 1. 过滤空值参数并排序
+    var keys []string
+    sortedParams := make(map[string]string)
+    for k, v := range params {
+        if v != "" && k != "signature" {
+            keys = append(keys, k)
+            sortedParams[k] = v
+        }
+    }
+    sort.Strings(keys)
+
+    // 2. 构建签名原文
+    var signatureBase strings.Builder
+    signatureBase.WriteString(appSecret) // 前置 appSecret
+
+    // 拼接所有参数
+    for _, k := range keys {
+        signatureBase.WriteString(k)
+        signatureBase.WriteString(sortedParams[k])
+    }
+
+    // 3. 计算SHA-256签名
+    return s.sha256(signatureBase.String())
+}
+
+// sha256 计算SHA-256哈希值
+func (s *SignatureUtil) sha256(input string) string {
+    hash := sha256.New()
+    hash.Write([]byte(input))
+    return hex.EncodeToString(hash.Sum(nil))
+}
+
+// VerifySignature 验证签名
+func (s *SignatureUtil) VerifySignature(params map[string]string, appSecret string, signature string) bool {
+    calculatedSignature := s.GenerateSignature(params, appSecret)
+    return calculatedSignature == signature
+}
+
+// GenerateSortedParamString 生成按key排序的参数字符串
+func (s *SignatureUtil) GenerateSortedParamString(params map[string]string) string {
+    if params == nil {
+        return ""
+    }
+
+    // 过滤空值参数并排序
+    var keys []string
+    sortedParams := make(map[string]string)
+    for k, v := range params {
+        if v != "" && k != "signature" {
+            keys = append(keys, k)
+            sortedParams[k] = v
+        }
+    }
+    sort.Strings(keys)
+
+    // 构建参数字符串
+    var result strings.Builder
+    for i, k := range keys {
+        if i > 0 {
+            result.WriteString("&")
+        }
+        result.WriteString(k)
+        result.WriteString("=")
+        result.WriteString(sortedParams[k])
+    }
+
+    return result.String()
+}
+```
+
+```php SignatureUtil.php [expandable]
+<?php
+namespace Examples;
+
+class SignatureUtil {
+    /**
+     * 生成签名
+     * @param array $params 请求参数
+     * @param string $appSecret 应用密钥
+     * @return string 签名字符串
+     */
+    public static function generateSignature(array $params, string $appSecret): string {
+        if (empty($params) || empty($appSecret)) {
+            throw new \InvalidArgumentException("Params and appSecret cannot be null");
+        }
+
+        // 1. 过滤空值参数并排序
+        $sortedParams = [];
+        foreach ($params as $key => $value) {
+            if (!empty($value) && $key !== 'signature') {
+                $sortedParams[$key] = $value;
+            }
+        }
+        ksort($sortedParams);
+
+        // 2. 构建签名原文
+        $signatureBase = $appSecret; // 前置 appSecret
+        
+        // 拼接所有参数
+        foreach ($sortedParams as $key => $value) {
+            $signatureBase .= $key . $value;
+        }
+
+        // 3. 计算SHA-256签名
+        return hash('sha256', $signatureBase);
+    }
+
+    /**
+     * 验证签名
+     * @param array $params 请求参数
+     * @param string $appSecret 应用密钥
+     * @param string $signature 待验证的签名
+     * @return bool 是否验证通过
+     */
+    public static function verifySignature(array $params, string $appSecret, string $signature): bool {
+        $calculatedSignature = self::generateSignature($params, $appSecret);
+        return $calculatedSignature === $signature;
+    }
+
+    /**
+     * 生成按key排序的参数字符串
+     * @param array $params 请求参数
+     * @return string 排序后的参数字符串
+     */
+    public static function generateSortedParamString(array $params): string {
+        if (empty($params)) {
+            throw new \InvalidArgumentException("Params cannot be null");
+        }
+
+        // 过滤空值参数并排序
+        $sortedParams = [];
+        foreach ($params as $key => $value) {
+            if (!empty($value) && $key !== 'signature') {
+                $sortedParams[$key] = $value;
+            }
+        }
+        ksort($sortedParams);
+
+        // 构建参数字符串
+        $result = [];
+        foreach ($sortedParams as $key => $value) {
+            $result[] = $key . '=' . $value;
+        }
+
+        return implode('&', $result);
+    }
+}
+```
+
+```cs SignatureUtil.cs [expandable]
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+
+namespace Examples
+{
+    public class SignatureUtil
+    {
+        /// <summary>
+        /// 生成签名
+        /// </summary>
+        /// <param name="params">请求参数</param>
+        /// <param name="appSecret">应用密钥</param>
+        /// <returns>签名字符串</returns>
+        public static string GenerateSignature(Dictionary<string, string> @params, string appSecret)
+        {
+            if (@params == null || string.IsNullOrEmpty(appSecret))
+            {
+                throw new ArgumentException("Params and appSecret cannot be null");
+            }
+
+            // 1. 过滤空值参数并排序
+            var sortedParams = @params
+                .Where(p => !string.IsNullOrEmpty(p.Value) && p.Key != "signature")
+                .OrderBy(p => p.Key)
+                .ToDictionary(p => p.Key, p => p.Value);
+
+            // 2. 构建签名原文
+            var signatureBase = new StringBuilder(appSecret); // 前置 appSecret
+            
+            // 拼接所有参数
+            foreach (var param in sortedParams)
+            {
+                signatureBase.Append(param.Key).Append(param.Value);
+            }
+
+            // 3. 计算SHA-256签名
+            return Sha256(signatureBase.ToString());
+        }
+
+        /// <summary>
+        /// SHA-256 加密
+        /// </summary>
+        private static string Sha256(string input)
+        {
+            using (var sha256 = SHA256.Create())
+            {
+                var bytes = Encoding.UTF8.GetBytes(input);
+                var hash = sha256.ComputeHash(bytes);
+                return BitConverter.ToString(hash).Replace("-", "").ToLower();
+            }
+        }
+
+        /// <summary>
+        /// 验证签名
+        /// </summary>
+        /// <param name="params">请求参数</param>
+        /// <param name="appSecret">应用密钥</param>
+        /// <param name="signature">待验证的签名</param>
+        /// <returns>是否验证通过</returns>
+        public static bool VerifySignature(Dictionary<string, string> @params, string appSecret, string signature)
+        {
+            var calculatedSignature = GenerateSignature(@params, appSecret);
+            return calculatedSignature.Equals(signature);
+        }
+
+        /// <summary>
+        /// 生成按key排序的参数字符串
+        /// </summary>
+        /// <param name="params">请求参数</param>
+        /// <returns>排序后的参数字符串</returns>
+        public static string GenerateSortedParamString(Dictionary<string, string> @params)
+        {
+            if (@params == null)
+            {
+                throw new ArgumentException("Params cannot be null");
+            }
+
+            // 过滤空值参数并排序
+            var sortedParams = @params
+                .Where(p => !string.IsNullOrEmpty(p.Value) && p.Key != "signature")
+                .OrderBy(p => p.Key);
+
+            // 构建参数字符串
+            return string.Join("&", sortedParams.Select(p => $"{p.Key}={p.Value}"));
+        }
+    }
+}
+
+```
+
+```python SignatureUtil.py [expandable]
+import hashlib
+from typing import Dict, Optional
+
+class SignatureUtil:
+    @staticmethod
+    def generate_signature(params: Dict[str, str], app_secret: str) -> str:
+        """
+        生成签名
+        :param params: 请求参数
+        :param app_secret: 应用密钥
+        :return: 签名字符串
+        """
+        if not params or not app_secret:
+            raise ValueError("Params and app_secret cannot be null")
+
+        # 1. 过滤空值参数并排序
+        sorted_params = {
+            k: v for k, v in sorted(params.items())
+            if v and k != "signature"
+        }
+
+        # 2. 构建签名原文
+        signature_base = app_secret  # 前置 app_secret
+        
+        # 拼接所有参数
+        for key, value in sorted_params.items():
+            signature_base += key + value
+
+        # 3. 计算SHA-256签名
+        return hashlib.sha256(signature_base.encode('utf-8')).hexdigest()
+
+    @staticmethod
+    def verify_signature(params: Dict[str, str], app_secret: str, signature: str) -> bool:
+        """
+        验证签名
+        :param params: 请求参数
+        :param app_secret: 应用密钥
+        :param signature: 待验证的签名
+        :return: 是否验证通过
+        """
+        calculated_signature = SignatureUtil.generate_signature(params, app_secret)
+        return calculated_signature == signature
+
+    @staticmethod
+    def generate_sorted_param_string(params: Dict[str, str]) -> str:
+        """
+        生成按key排序的参数字符串
+        :param params: 请求参数
+        :return: 排序后的参数字符串
+        """
+        if not params:
+            raise ValueError("Params cannot be null")
+
+        # 过滤空值参数并排序
+        sorted_params = {
+            k: v for k, v in sorted(params.items())
+            if v and k != "signature"
+        }
+
+        # 构建参数字符串
+        return "&".join(f"{k}={v}" for k, v in sorted_params.items())
+
+```
+
+```js SignatureUtil.js [expandable]
+const crypto = require('crypto');
+
+class SignatureUtil {
+    /**
+     * 生成签名
+     * @param {Object} params - 请求参数
+     * @param {string} appSecret - 应用密钥
+     * @returns {string} 签名字符串
+     */
+    static generateSignature(params, appSecret) {
+        if (!params || !appSecret) {
+            throw new Error('Params and appSecret cannot be null');
+        }
+
+        // 1. 过滤空值参数并排序
+        const sortedParams = {};
+        Object.keys(params)
+            .sort()
+            .forEach(key => {
+                if (params[key] && key !== 'signature') {
+                    sortedParams[key] = params[key];
+                }
+            });
+
+        // 2. 构建签名原文
+        let signatureBase = appSecret; // 前置 appSecret
+        
+        // 拼接所有参数
+        Object.entries(sortedParams).forEach(([key, value]) => {
+            signatureBase += key + value;
+        });
+
+        // 3. 计算SHA-256签名
+        return crypto
+            .createHash('sha256')
+            .update(signatureBase)
+            .digest('hex');
+    }
+
+    /**
+     * 验证签名
+     * @param {Object} params - 请求参数
+     * @param {string} appSecret - 应用密钥
+     * @param {string} signature - 待验证的签名
+     * @returns {boolean} 是否验证通过
+     */
+    static verifySignature(params, appSecret, signature) {
+        const calculatedSignature = this.generateSignature(params, appSecret);
+        return calculatedSignature === signature;
+    }
+
+    /**
+     * 生成按key排序的参数字符串
+     * @param {Object} params - 请求参数
+     * @returns {string} 排序后的参数字符串
+     */
+    static generateSortedParamString(params) {
+        if (!params) {
+            throw new Error('Params cannot be null');
+        }
+
+        // 过滤空值参数并排序
+        return Object.keys(params)
+            .sort()
+            .filter(key => params[key] && key !== 'signature')
+            .map(key => `${key}=${params[key]}`)
+            .join('&');
+    }
+}
+
+module.exports = SignatureUtil;
+
+```
+</CodeGroup>
+
+### 4. 发起请求
+将拼接好的请求参数发送给配送技术服务合作中心的服务端，服务端会根据请求参数，对签名进行验证，签名不合法的请求将会被拒绝。
+
+
+
+
+

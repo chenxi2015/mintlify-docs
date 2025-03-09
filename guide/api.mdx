@@ -1,0 +1,85 @@
+---
+title: 'API调用规范'
+description: '调用配送技术服务合作中心API，需要按照以下步骤：填充参数 > 生成签名 > 拼装HTTP请求 > 发起HTTP请求> 得到HTTP响应 > 解析json结果'
+icon: 'book-open-reader'
+---
+
+## 一、流量控制
+
+为保证系统稳定，针对每个接口都做了流量控制，如果接口请求的QPS大于设置的阈值，会返回 
+```json
+{"errcode":11,"message":"接口流控", "data": {}}，
+```
+如果遇到流量控制，建议三次重试，每次间隔10秒。
+
+<Tip>
+  注意：开放平台API不支持压测场景，禁止合作方压测场景直接调用开放平台API。
+</Tip>
+
+## 二.请求协议
+
+- 编码格式：UTF-8
+- 调用方式：HTTPS / POST
+- HTTP请求格式：application/json
+- 正式环境api域名：https://open-o2o.yaotcloud.com/v1/api/{具体接口url}
+- 沙箱环境api域名：https://sandbox-o2o.yaotcloud.com/v1/api/{具体接口url}
+
+## 三、参数说明
+<Tip>
+  药通云开放平台API接口请求参数分为两种：公共参数 和 业务参数，公共参数主要用于鉴权，每个接口必传。
+</Tip>
+
+### 1、公共参数
+
+| 参数名称 | 类型 | 含义 | 必填 | 参数描述 |
+| :--- | ---- | ---- | ---- | ---- |
+| app_key  | string  |  应用 | 是 | 开放平台为每个客户分配独立的app_key，作为客户接入认证标识。<br/> 获取方式详见[对接流程](/quickstart) 每个app_key会绑定单独的app_secret。 |
+| timestamp  | long  |  时间戳 | 是 | 请求时间戳，单位为秒。<br/> 时区为东八区(北京时间) 如：1741478746 |
+| signature  | string  |  签名 | 是 | 查看[签名算法](/guide/sign) |
+| format  | string  |  请求格式 | 是 | 请求格式，暂时只支持json |
+| v  | string  |  API版本 | 是 | API协议版本，可选值：1.0 |
+
+### 2、业务参数
+不同接口的业务参数不同，业务参数详见各接口文档。
+
+示例：
+```json
+{ 
+  "app_key": "39……177070",
+  "signature": "90751b18a91e……31516937d528c7a1",
+  "timestamp": "1741478746",
+  "format": "json",
+  "v": "1.0",
+  "shop_no": "S4564",
+  "mch_sku": "12312",
+  "stock": 1
+}
+```
+
+### 3、响应结果
+
+| 参数名称 | 类型 | 含义 | 参数描述 |
+| :--- | ---- | ---- | ---- |
+| errcode  | int  | 错误码 | 响应返回错误码，参考[错误码说明](/guide/navigation) |
+| message  | string  | 响应描述 | 响应返回码对应的描述，参考[错误码说明](/guide/navigation) |
+| data  | object | 响应结果 | JSON对象，详见具体的接口描述 |
+
+<CodeGroup>
+```json 成功返回
+{
+  "errcode": 0,
+  "message": "success",
+  "data": {}
+}
+```
+
+```json 错误返回
+{
+  "errcode": 10003,
+  "message": "同步库存失败",
+  "data": {
+    "err_skus_list": ["1312", "34234", "34234"]
+  }
+}
+```
+</CodeGroup>
