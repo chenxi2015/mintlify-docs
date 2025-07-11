@@ -1,33 +1,38 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: '接口分类总览'
+description: 'API 分类与接口列表导航'
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+## 1. 订单接口（Order API）
 
-## Welcome
+| 接口名称   | 接口地址                    | 文档链接         |
+| ---------- | -------------------------- | --------------- |
+| 取消订单   | `POST /order/cancel`   | [详情](/api-reference/order/cancel) |
+| 查询订单   | `GET /order/{orderId}` | [详情](#order-get)    |
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+## 2. 库存接口（Stock API）
 
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+| 接口名称   | 接口地址                        | 文档链接         |
+| ---------- | ------------------------------ | --------------- |
+| 查询库存   | `GET /api/stock/{productId}`   | [详情](#stock-get)    |
+| 更新库存   | `POST /api/stock/update`       | [详情](#stock-update) |
 
-## Authentication
+## 3. 商品接口（Goods API）
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+| 接口名称     | 接口地址                        | 文档链接         |
+| ------------ | ------------------------------ | --------------- |
+| 查询商品列表 | `GET /api/goods/list`          | [详情](#goods-list)   |
+| 查询商品详情 | `GET /api/goods/{productId}`   | [详情](#goods-get)    |
 
-```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
-```
+## 4. 门店接口（Shop API）
+
+| 接口名称     | 接口地址                        | 文档链接         |
+| ------------ | ------------------------------ | --------------- |
+| 查询门店列表 | `GET /api/shop/list`           | [详情](#shop-list)    |
+| 查询门店详情 | `GET /api/shop/{shopId}`       | [详情](#shop-get)     |
+
+## 5. 回调通知接口（Callback/Notification API）
+
+| 接口名称         | 接口地址                              | 文档链接                   |
+| ---------------- | ------------------------------------ | ------------------------- |
+| 订单状态变更通知 | `POST /api/callback/order-status`    | [详情](#callback-order-status) |

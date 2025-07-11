@@ -7,18 +7,19 @@
     "light": "#07C983",
     "dark": "#15803D"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/favicon.ico",
+  "openapi": "api-reference/openapi.json",
   "navigation": {
     "global": {
       "anchors": [
         {
           "anchor": "开放平台",
-          "href": "https://mintlify.com/docs",
+          "href": "https://open.yaotyun.com",
           "icon": "book-open-cover"
         },
         {
           "anchor": "药通云官网",
-          "href": "https://yqofficial.netlify.app",
+          "href": "https://mch.yaotyun.com",
           "icon": "slack"
         }
       ]
@@ -82,46 +83,40 @@
           {
             "group": "订单接口",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api-reference/order/info",
+              "api-reference/order/courier-info",
+              "api-reference/order/order-pick",
+              "api-reference/order/cancel"
             ]
           },
           {
             "group": "库存接口",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api-reference/stock/batch-update",
+              "api-reference/stock/single-update"
             ]
           },
           {
             "group": "商品接口",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api-reference/product/mch-list",
+              "api-reference/product/batch-update",
+              "api-reference/product/single-update"
             ]
           },
           {
             "group": "门店接口",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api-reference/shop/biz-status"
             ]
           },
           {
-            "group": "回调通知",
+            "group": "消息推送",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "api-reference/msg-push/paid-order",
+              "api-reference/msg-push/cancel-order",
+              "api-reference/msg-push/refund-order",
+              "api-reference/msg-push/courier-info"
             ]
           }
         ]
@@ -154,7 +149,7 @@
     "primary": {
       "type": "button",
       "label": "平台后台",
-      "href": "https://yqo2o.netlify.app"
+      "href": "https://mch.yaotyun.com"
     }
   },
   "footer": {
