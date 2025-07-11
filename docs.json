@@ -8,7 +8,6 @@
     "dark": "#15803D"
   },
   "favicon": "/favicon.ico",
-  "openapi": "api-reference/openapi.json",
   "navigation": {
     "global": {
       "anchors": [
@@ -85,7 +84,7 @@
             "pages": [
               "api-reference/order/info",
               "api-reference/order/courier-info",
-              "api-reference/order/order-pick",
+              "api-reference/order/self-pick",
               "api-reference/order/cancel"
             ]
           },
@@ -125,9 +124,9 @@
         "tab": "SDKs",
         "groups": [
           {
-            "group": "SDKs",
+            "group": "SDK下载",
             "pages": [
-              "sdks/js/markdown"
+              "sdks/download"
             ]
           }
         ]

@@ -16,7 +16,7 @@
   "paths": {
     "/order/cancel": {
       "post": {
-        "description": "请求取消订单",
+        "description": "请求取消订单1",
         "parameters": [
           {
             "name": "order_id",

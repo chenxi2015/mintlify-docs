@@ -5,34 +5,39 @@ description: 'API 分类与接口列表导航'
 
 ## 1. 订单接口（Order API）
 
-| 接口名称   | 接口地址                    | 文档链接         |
-| ---------- | -------------------------- | --------------- |
-| 取消订单   | `POST /order/cancel`   | [详情](/api-reference/order/cancel) |
-| 查询订单   | `GET /order/{orderId}` | [详情](#order-get)    |
+| 接口名称     | 接口地址                | 文档链接                           |
+| ------------ | ---------------------- | ---------------------------------- |
+| 查询订单     | `GET /order/info`      | [详情](/api-reference/order/info)  |
+| 配送信息查询 | `GET /order/courier-info`   | [详情](/api-reference/order/courier-info) |
+| 自提码查询   | `GET /order/self-pick` | [详情](/api-reference/order/self-pick) |
+| 取消订单     | `POST /order/cancel`   | [详情](/api-reference/order/cancel) |
 
 ## 2. 库存接口（Stock API）
 
-| 接口名称   | 接口地址                        | 文档链接         |
-| ---------- | ------------------------------ | --------------- |
-| 查询库存   | `GET /api/stock/{productId}`   | [详情](#stock-get)    |
-| 更新库存   | `POST /api/stock/update`       | [详情](#stock-update) |
+| 接口名称     | 接口地址                    | 文档链接                                 |
+| ------------ | -------------------------- | ---------------------------------------- |
+| 批量更新库存 | `POST /stock/batch-update` | [详情](/api-reference/stock/batch-update) |
+| 单品库存更新 | `POST /stock/single-update`| [详情](/api-reference/stock/single-update) |
 
 ## 3. 商品接口（Goods API）
 
-| 接口名称     | 接口地址                        | 文档链接         |
-| ------------ | ------------------------------ | --------------- |
-| 查询商品列表 | `GET /api/goods/list`          | [详情](#goods-list)   |
-| 查询商品详情 | `GET /api/goods/{productId}`   | [详情](#goods-get)    |
+| 接口名称     | 接口地址                        | 文档链接                                 |
+| ------------ | ------------------------------ | ---------------------------------------- |
+| 商户商品列表 | `GET /product/mch-list`        | [详情](/api-reference/product/mch-list)  |
+| 批量更新商品 | `POST /product/batch-update`   | [详情](/api-reference/product/batch-update) |
+| 单品更新     | `POST /product/single-update`  | [详情](/api-reference/product/single-update) |
 
 ## 4. 门店接口（Shop API）
 
-| 接口名称     | 接口地址                        | 文档链接         |
-| ------------ | ------------------------------ | --------------- |
-| 查询门店列表 | `GET /api/shop/list`           | [详情](#shop-list)    |
-| 查询门店详情 | `GET /api/shop/{shopId}`       | [详情](#shop-get)     |
+| 接口名称     | 接口地址                  | 文档链接                                 |
+| ------------ | ------------------------ | ---------------------------------------- |
+| 查询门店状态 | `GET /shop/biz-status`   | [详情](/api-reference/shop/biz-status)   |
 
-## 5. 回调通知接口（Callback/Notification API）
+## 5. 消息推送（Message Push）
 
-| 接口名称         | 接口地址                              | 文档链接                   |
-| ---------------- | ------------------------------------ | ------------------------- |
-| 订单状态变更通知 | `POST /api/callback/order-status`    | [详情](#callback-order-status) |
+| 接口名称         | 接口地址                        | 文档链接                                 |
+| ---------------- | ------------------------------ | ---------------------------------------- |
+| 支付成功推送     | `POST /msg-push/paid-order`    | [详情](/api-reference/msg-push/paid-order) |
+| 取消订单推送     | `POST /msg-push/cancel-order`  | [详情](/api-reference/msg-push/cancel-order) |
+| 退款推送         | `POST /msg-push/refund-order`  | [详情](/api-reference/msg-push/refund-order) |
+| 配送信息推送     | `POST /msg-push/courier-info`  | [详情](/api-reference/msg-push/courier-info) |
